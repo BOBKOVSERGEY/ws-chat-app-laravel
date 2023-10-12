@@ -7,8 +7,13 @@ use App\Http\Resources\Chat\ChatResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\Chat;
 use App\Models\User;
+use App\Providers\RouteServiceProvider;
 use Exception;
+use Illuminate\Foundation\Application;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +30,7 @@ class ChatController extends Controller
 
         $chats = auth()->user()
                         ->chats()
+                        ->has('messages') // find chats who have message
                         ->get();
 
         $chats = ChatResource::collection($chats)->resolve();
@@ -37,7 +43,7 @@ class ChatController extends Controller
             ));
     }
 
-    public function store(ChatStoreRequest $request): Response
+    public function store(ChatStoreRequest $request): Application|JsonResponse|Redirector|RedirectResponse|\Illuminate\Contracts\Foundation\Application
     {
         $data = $request->validated();
 
@@ -61,17 +67,27 @@ class ChatController extends Controller
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $exception->getMessage()
+            ]);
         }
 
-        $chat = ChatResource::make($chat)->resolve();
+        //$chat = ChatResource::make($chat)->resolve();
+        return redirect(route('chats.show', $chat->id));
 
-        return Inertia::render('Chat/Show', compact('chat'));
     }
 
     public function show(Chat $chat): Response
     {
+        $users = $chat->users()->get();
+        $users = UserResource::collection($users)->resolve();
         $chat = ChatResource::make($chat)->resolve();
 
-        return Inertia::render('Chat/Show');
+        return Inertia::render('Chat/Show', compact(
+            'chat',
+            'users'
+        ));
     }
 }
