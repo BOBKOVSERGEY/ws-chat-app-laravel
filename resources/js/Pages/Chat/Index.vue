@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
-import {reactive} from "vue";
+import {reactive, ref} from "vue";
 
 const props = defineProps({
     users: {
@@ -13,10 +13,27 @@ const props = defineProps({
     chats: {
         type: Array
     }
-})
+});
+
+const isGroup = ref(false);
+const userIds = ref([]);
+const title = ref('');
 
 function submit(id) {
     router.post('/chats', {title: null, users: [id]})
+}
+
+const toggleUsers = (id) => {
+    let index = userIds.value.indexOf(id)
+    if(index === -1) {
+        userIds.value.push(id)
+    } else {
+        userIds.value.splice(index, 1);
+    }
+}
+
+const storeGroup = () => {
+    router.post('/chats', {title: title.value, users:  userIds.value })
 }
 </script>
 
@@ -38,15 +55,44 @@ function submit(id) {
                           text-gray-900
                           bg-slate-200
                         ">
+                            <div class="flex justify-center flex-col items-center ">
+                                <a
+                                    @click.prevent="isGroup = !isGroup"
+                                    v-if="!isGroup"
+                                    href="#" class="p-2" >Make group</a>
+                                <div v-if="isGroup" class="flex justify-center flex-col items-center">
+                                    <input
+                                        v-model="title"
+                                        placeholder="title"
+                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    />
+                                    <div>
+                                    <a
+                                        @click.prevent="storeGroup"
+                                        href="#" :class="['p-2', userIds.length < 2 ? 'hover:cursor-not-allowed' : '']">Go chat</a>
+                                    <a
+                                        @click.prevent="isGroup = !isGroup"
+                                        href="#" class="p-2">x</a>
+                                    </div>
+                                </div>
+                            </div>
                             Users
                                 <div class="bg-white mb-3 p-3 shadow-sm rounded-lg" v-for="user in users" :key="user.id">
                                     <div class="flex items-center space-x-4">
-                                        <div class="flex-1 min-w-0">
+                                        <div class=" flex items-center flex-1 min-w-0">
                                             <p
                                                 @click.prevent="submit(user.id)"
                                                 class="font-medium text-gray-900 ">
                                                 {{user.name}}
                                             </p>
+                                            <div
+                                                v-if="isGroup"
+                                                class="ml-2">
+                                                <input
+                                                    v-model="userIds"
+                                                    v-bind:value="user.id"
+                                                    type="checkbox">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Chat\ChatStoreRequest;
 use App\Http\Resources\Chat\ChatResource;
+use App\Http\Resources\Message\MessageResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\Chat;
 use App\Models\User;
@@ -56,7 +57,7 @@ class ChatController extends Controller
         try {
             DB::beginTransaction();
 
-            $chat = Chat::query()->firstOrCreate([
+            $chat = Chat::query()->updateOrCreate([
                 'users' => $userIdsString
             ], [
                 'title' => $data['title']
@@ -83,11 +84,19 @@ class ChatController extends Controller
     {
         $users = $chat->users()->get();
         $users = UserResource::collection($users)->resolve();
+        $messages = $chat->messages()
+            ->with('user')
+            ->get();
+
+        $messages = MessageResource::collection($messages)->resolve();
+
+
         $chat = ChatResource::make($chat)->resolve();
 
         return Inertia::render('Chat/Show', compact(
             'chat',
-            'users'
+            'users',
+            'messages'
         ));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageStoreEvent;
 use App\Http\Requests\Message\MessageStoreRequest;
 use App\Http\Resources\Message\MessageResource;
 use App\Models\Message;
@@ -32,6 +33,9 @@ class MessageController extends Controller
                     'user_id' => $id,
                 ]);
             }
+
+            broadcast(new MessageStoreEvent($message))->toOthers();
+
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();

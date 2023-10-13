@@ -1,7 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, usePage} from '@inertiajs/vue3';
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
+
 const authUser = usePage().props.auth.user;
 const props = defineProps({
     chat: {
@@ -9,11 +10,23 @@ const props = defineProps({
     },
     users: {
         type: Array
+    },
+    messages: {
+        type: Array
     }
 });
 
 const model = ref({
     body: ''
+});
+
+onMounted(() => {
+    Echo.channel('store-message')
+        .listen('.store-message', res => {
+            console.log(res);
+            res.message.is_owner = false;
+            props.messages.push(res.message)
+        })
 });
 
 const userIds = computed(() => {
@@ -32,7 +45,8 @@ const store = () => {
         body: model.value.body,
         user_ids: userIds.value
     }).then( res => {
-        console.log(res);
+        props.messages.push(res.data)
+        model.value.body = ''
     })
 };
 </script>
@@ -67,13 +81,26 @@ const store = () => {
                                 </div>
                             </div>
                         </div>
-                        <div class="p-6 text-gray-900">
+                        <div class="p-6 text-gray-900 w-full">
                             <h3 class="text-lg text-gray-700 mb-4">{{ chat.title ?? 'Your chat' }}</h3>
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. A assumenda cupiditate debitis
-                                dolore, eos facere, facilis fugit in minima, minus non nostrum nulla perferendis
-                                quibusdam saepe sunt totam ullam veritatis.
-                            </p>
+
+
+                            <div
+                                v-for="message in messages" :key="message.id"
+                                :class="['mb-3', message.is_owner ? 'text-end' : '2']"
+                            >
+                                <div>
+                                    <small>{{ message.user.name }}</small>
+                                </div>
+                                <p
+                                    :class="['mb-3', message.is_owner ? 'bg-indigo-200' : 'bg-gray-200']"
+                                    class=" p-3 rounded-md inline-block">
+                                    {{ message.body }}
+                                </p>
+                                <div>
+                                    <small>{{ message.time }}</small>
+                                </div>
+                            </div>
                             <div class="flex my-3">
                     <textarea
                         v-model="model.body"
