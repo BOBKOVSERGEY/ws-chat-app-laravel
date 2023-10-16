@@ -1,10 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { useForm } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
-import {reactive, ref} from "vue";
+import {Head, usePage} from '@inertiajs/vue3';
+import {useForm} from '@inertiajs/vue3';
+import {router} from '@inertiajs/vue3';
+import {Link} from '@inertiajs/vue3';
+import {onMounted, reactive, ref} from "vue";
+
+const authUser = usePage().props.auth.user;
 
 const props = defineProps({
     users: {
@@ -25,20 +27,33 @@ function submit(id) {
 
 const toggleUsers = (id) => {
     let index = userIds.value.indexOf(id)
-    if(index === -1) {
+    if (index === -1) {
         userIds.value.push(id)
     } else {
         userIds.value.splice(index, 1);
     }
 }
 
+onMounted(() => {
+    Echo.channel(`users.${authUser.id}`)
+        .listen('.store-message-status', res => {
+            console.log(res);
+            props.chats.filter(chat => {
+                if(chat.id === res.chat_id) {
+                    chat.unreadable_count = res.count
+                }
+            })
+
+        })
+})
+
 const storeGroup = () => {
-    router.post('/chats', {title: title.value, users:  userIds.value })
+    router.post('/chats', {title: title.value, users: userIds.value})
 }
 </script>
 
 <template>
-    <Head title="Chat" />
+    <Head title="Chat"/>
 
     <AuthenticatedLayout>
         <template #header>
@@ -59,7 +74,7 @@ const storeGroup = () => {
                                 <a
                                     @click.prevent="isGroup = !isGroup"
                                     v-if="!isGroup"
-                                    href="#" class="p-2" >Make group</a>
+                                    href="#" class="p-2">Make group</a>
                                 <div v-if="isGroup" class="flex justify-center flex-col items-center">
                                     <input
                                         v-model="title"
@@ -67,45 +82,63 @@ const storeGroup = () => {
                                         class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                     />
                                     <div>
-                                    <a
-                                        @click.prevent="storeGroup"
-                                        href="#" :class="['p-2', userIds.length < 2 ? 'hover:cursor-not-allowed' : '']">Go chat</a>
-                                    <a
-                                        @click.prevent="isGroup = !isGroup"
-                                        href="#" class="p-2">x</a>
+                                        <a
+                                            @click.prevent="storeGroup"
+                                            href="#"
+                                            :class="['p-2', userIds.length < 2 ? 'hover:cursor-not-allowed' : '']">Go
+                                            chat</a>
+                                        <a
+                                            @click.prevent="isGroup = !isGroup"
+                                            href="#" class="p-2">x</a>
                                     </div>
                                 </div>
                             </div>
                             Users
-                                <div class="bg-white mb-3 p-3 shadow-sm rounded-lg" v-for="user in users" :key="user.id">
-                                    <div class="flex items-center space-x-4">
-                                        <div class=" flex items-center flex-1 min-w-0">
-                                            <p
-                                                @click.prevent="submit(user.id)"
-                                                class="font-medium text-gray-900 ">
-                                                {{user.name}}
-                                            </p>
-                                            <div
-                                                v-if="isGroup"
-                                                class="ml-2">
-                                                <input
-                                                    v-model="userIds"
-                                                    v-bind:value="user.id"
-                                                    type="checkbox">
-                                            </div>
+                            <div class="bg-white mb-3 p-3 shadow-sm rounded-lg" v-for="user in users" :key="user.id">
+                                <div class="flex items-center space-x-4">
+                                    <div class=" flex items-center flex-1 min-w-0">
+                                        <p
+                                            @click.prevent="submit(user.id)"
+                                            class="font-medium text-gray-900 ">
+                                            {{ user.name }}
+                                        </p>
+                                        <div
+                                            v-if="isGroup"
+                                            class="ml-2">
+                                            <input
+                                                v-model="userIds"
+                                                v-bind:value="user.id"
+                                                type="checkbox">
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                             Chats
                             <div class="bg-white mb-3 p-3 shadow-sm rounded-lg"
                                  v-for="chat in chats" :key="chat.id">
                                 <div class="flex items-center space-x-4">
                                     <div class="flex-1 min-w-0">
                                         <Link :href="route('chats.show', chat.id)">
-                                            <p
-                                                class="font-medium text-gray-900 ">
-                                                {{ chat.title ?? 'Your Chat' }} {{ chat.id }}
-                                            </p>
+                                            <div class="relative z-1">
+                                                <p
+                                                    class="font-medium text-gray-900 ">
+                                                    {{ chat.title ?? 'Your Chat' }} {{ chat.id }}
+                                                </p>
+                                                <span
+                                                    v-if="chat.unreadable_count"
+                                                    class="
+                                                            absolute
+                                                            right-0
+                                                            top-[-5px]
+                                                            text-xs
+                                                            rounded-full
+                                                            p-2 bg-indigo-700
+                                                            text-white
+                                                            z-2
+                                                            ">
+                                                    {{ chat.unreadable_count }}
+                                                </span>
+                                            </div>
                                         </Link>
                                     </div>
                                 </div>

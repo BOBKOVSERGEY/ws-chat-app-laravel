@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Chat extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'title',
         'users'
@@ -17,10 +18,10 @@ class Chat extends Model
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(
-          related: User::class,
-          table: 'chat_user',
-          foreignPivotKey: 'chat_id',
-          relatedPivotKey: 'user_id'
+            related: User::class,
+            table: 'chat_user',
+            foreignPivotKey: 'chat_id',
+            relatedPivotKey: 'user_id'
         );
     }
 
@@ -31,6 +32,17 @@ class Chat extends Model
             foreignKey: 'chat_id',
             localKey: 'id'
         );
+    }
+
+    public function unreadableMessageStatus(): HasMany
+    {
+        return $this->hasMany(
+            related: MessageStatus::class,
+            foreignKey: 'chat_id',
+            localKey: 'id'
+        )
+            ->where('user_id', auth()->id())
+            ->where('is_read', false);
     }
 
 }

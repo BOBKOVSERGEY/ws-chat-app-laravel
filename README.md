@@ -5,7 +5,7 @@ alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 # create migration m:m
 sail artisan make:migration create_chat_user_table
 # lesson 
-17 Подписка веб сокета в данном чате и альтернатива is_owner
+21  Изменение статуса сообщения, полученного в чате с веб сокетом
 
 # clone
 git clone git@github.com:BOBKOVSERGEY/ws-chat-app-laravel.git

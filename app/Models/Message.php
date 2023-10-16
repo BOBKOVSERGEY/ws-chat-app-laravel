@@ -21,7 +21,7 @@ class Message extends Model
         return $this->created_at->diffForHumans();
     }
 
-    public function getIsOwnerAttribute()
+    public function getIsOwnerAttribute(): bool
     {
         return (int) $this->user_id === (int) auth()->id();
      }

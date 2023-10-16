@@ -32,6 +32,7 @@ class ChatController extends Controller
         $chats = auth()->user()
                         ->chats()
                         ->has('messages') // find chats who have message
+                        ->withCount('unreadableMessageStatus')
                         ->get();
 
         $chats = ChatResource::collection($chats)->resolve();
@@ -84,9 +85,14 @@ class ChatController extends Controller
     {
         $users = $chat->users()->get();
         $users = UserResource::collection($users)->resolve();
+
         $messages = $chat->messages()
             ->with('user')
             ->get();
+
+        $chat->unreadableMessageStatus()->update([
+            'is_read' => true
+        ]);
 
         $messages = MessageResource::collection($messages)->resolve();
 
