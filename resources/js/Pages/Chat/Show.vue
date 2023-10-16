@@ -21,10 +21,10 @@ const model = ref({
 });
 
 onMounted(() => {
-    Echo.channel('store-message')
+    Echo.channel(`store-message.${props.chat.id}`)
         .listen('.store-message', res => {
             console.log(res);
-            res.message.is_owner = false;
+            //res.message.is_owner = false;
             props.messages.push(res.message)
         })
 });
