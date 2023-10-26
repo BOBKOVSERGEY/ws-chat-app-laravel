@@ -26,12 +26,14 @@ class ChatController extends Controller
         $allUsers = User::query()
             ->where('id', '!=', auth()->id())
             ->get();
+
         $users = UserResource::collection($allUsers)
             ->resolve();
 
         $chats = auth()->user()
                         ->chats()
                         ->has('messages') // find chats who have message
+                        ->with(['lastMessage'])
                         ->withCount('unreadableMessageStatus')
                         ->get();
 

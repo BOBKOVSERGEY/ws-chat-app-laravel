@@ -44,7 +44,8 @@ class MessageController extends Controller
                     new MessageStatusStoreEvent(
                         $count,
                         (int)$data['chat_id'],
-                        (int)$user_id
+                        (int)$user_id,
+                        $message
                     )
                 );
 
@@ -66,4 +67,5 @@ class MessageController extends Controller
 
 
     }
+
 }

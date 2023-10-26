@@ -35,12 +35,13 @@ const toggleUsers = (id) => {
 }
 
 onMounted(() => {
-    Echo.channel(`users.${authUser.id}`)
+    Echo.private(`users.${authUser.id}`)
         .listen('.store-message-status', res => {
             console.log(res);
             props.chats.filter(chat => {
                 if(chat.id === res.chat_id) {
                     chat.unreadable_count = res.count
+                    chat.last_message = res.message
                 }
             })
 
@@ -54,7 +55,6 @@ const storeGroup = () => {
 
 <template>
     <Head title="Chat"/>
-
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Chat</h2>
@@ -124,6 +124,10 @@ const storeGroup = () => {
                                                     class="font-medium text-gray-900 ">
                                                     {{ chat.title ?? 'Your Chat' }} {{ chat.id }}
                                                 </p>
+                                                <div
+                                                :class="['p-3', chat.unreadable_count !== 0 ? 'bg-sky-50': '']">
+                                                    {{chat.last_message.user.name}}: {{chat.last_message.body}}
+                                                </div>
                                                 <span
                                                     v-if="chat.unreadable_count"
                                                     class="

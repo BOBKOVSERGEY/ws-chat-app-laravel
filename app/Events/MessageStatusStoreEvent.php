@@ -3,6 +3,8 @@
 namespace App\Events;
 
 use App\Http\Resources\Message\MessageBroadcastResource;
+use App\Http\Resources\Message\MessageResource;
+use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -20,12 +22,13 @@ class MessageStatusStoreEvent implements ShouldBroadcast
         private readonly int $count,
         private readonly int $chatId,
         private readonly int $userId,
+        private readonly Message $message,
     )
     {}
     public function broadcastOn(): array
     {
         return [
-            new Channel('users.' . $this->userId),
+            new PrivateChannel('users.' . $this->userId),
         ];
     }
 
@@ -38,7 +41,8 @@ class MessageStatusStoreEvent implements ShouldBroadcast
     {
         return [
             'chat_id' => $this->chatId,
-            'count' => $this->count
+            'count' => $this->count,
+            'message' => MessageResource::make($this->message)->resolve(),
         ];
     }
 }

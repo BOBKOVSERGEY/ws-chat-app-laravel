@@ -1,9 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, usePage} from '@inertiajs/vue3';
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 
 const authUser = usePage().props.auth.user;
+const url = usePage().url;
 const props = defineProps({
     chat: {
         type: Object
@@ -24,7 +25,22 @@ onMounted(() => {
     Echo.channel(`store-message.${props.chat.id}`)
         .listen('.store-message', res => {
             props.messages.push(res.message)
+
+            axios.put('/message-status', {
+                user_id: authUser.id,
+                message_id: res.message.id,
+            })
+
+
         })
+});
+
+onUnmounted(() => {
+    console.log('unmounting');
+    if (Echo) {
+        // leave the channel
+        Echo.leave(`store-message.${props.chat.id}`);
+    }
 });
 
 const userIds = computed(() => {
@@ -50,12 +66,10 @@ const store = () => {
 </script>
 <template>
     <Head title="Chat"/>
-
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Chat</h2>
         </template>
-
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
