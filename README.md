@@ -5,7 +5,7 @@ alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 # create migration m:m
 sail artisan make:migration create_chat_user_table
 # lesson 
-25  Использование Job для снятия нагрузки
+27  Подгрузка сообщений
 
 # clone
 git clone git@github.com:BOBKOVSERGEY/ws-chat-app-laravel.git
@@ -19,6 +19,8 @@ composer install --ignore-platform-reqs
 
 
 ctrl alt l format 
+
+alt j  выбрать кусок
 
 # Pusher
 composer require pusher/pusher-php-server

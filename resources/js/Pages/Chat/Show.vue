@@ -24,7 +24,7 @@ const model = ref({
 onMounted(() => {
     Echo.channel(`store-message.${props.chat.id}`)
         .listen('.store-message', res => {
-            props.messages.push(res.message)
+            props.messages.unshift(res.message)
 
             axios.put('/message-status', {
                 user_id: authUser.id,
@@ -59,7 +59,7 @@ const store = () => {
         body: model.value.body,
         user_ids: userIds.value
     }).then( res => {
-        props.messages.push(res.data)
+        props.messages.unshift(res.data)
         model.value.body = ''
     })
 };
@@ -98,7 +98,7 @@ const store = () => {
 
 
                             <div
-                                v-for="message in messages" :key="message.id"
+                                v-for="message in messages.slice().reverse()" :key="message.id"
                                 :class="['mb-3', message.is_owner ? 'text-end' : '2']"
                             >
                                 <div>
