@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Chat extends Model
 {
@@ -54,6 +56,18 @@ class Chat extends Model
             localKey: 'id'
         )->latestOfMany()
             ->with('user');
+    }
+
+    public function chatWith(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            User::class,
+            ChatUser::class,
+            'chat_id',
+            'id',
+            'id',
+            'user_id',
+        )->where('user_id', '!=', auth()->id());
     }
 
 }

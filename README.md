@@ -25,3 +25,6 @@ alt j  выбрать кусок
 # Pusher
 composer require pusher/pusher-php-server
 npm install --save-dev laravel-echo pusher-js
+
+
+composer require beyondcode/laravel-websockets -w

@@ -2,8 +2,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, usePage} from '@inertiajs/vue3';
 import {computed, onMounted, onUnmounted, ref} from "vue";
+import axios from "axios";
 
 const authUser = usePage().props.auth.user;
+
+
 const url = usePage().url;
 const props = defineProps({
     chat: {
@@ -14,12 +17,17 @@ const props = defineProps({
     },
     messages: {
         type: Array
+    },
+    isLastPage: {
+        type: Boolean
     }
 });
 
 const model = ref({
     body: ''
 });
+
+const page = ref(1);
 
 onMounted(() => {
     Echo.channel(`store-message.${props.chat.id}`)
@@ -63,6 +71,14 @@ const store = () => {
         model.value.body = ''
     })
 };
+
+const getMessages = () => {
+    axios.get(`/chats/${props.chat.id}?page=${++page.value}`)
+        .then(res => {
+            props.messages.push(...res.data.messages)
+            usePage().props.isLastPage = res.data.isLastPage
+        });
+};
 </script>
 <template>
     <Head title="Chat"/>
@@ -95,8 +111,14 @@ const store = () => {
                         </div>
                         <div class="p-6 text-gray-900 w-full">
                             <h3 class="text-lg text-gray-700 mb-4">{{ chat.title ?? 'Your chat' }}</h3>
-
-
+                            <div class="flex justify-center mb-2">
+                                <button
+                                    v-if="!isLastPage"
+                                    @click.prevent="getMessages"
+                                    class="inline-flex justify-center items-center whitespace-nowrap focus:outline-none transition-colors focus:ring duration-150 border cursor-pointer rounded border-emerald-600 dark:border-emerald-500 ring-emerald-300 dark:ring-emerald-700 bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 hover:border-emerald-700 hover:dark:bg-emerald-600 hover:dark:border-emerald-600 py-2 px-3">
+                                    load more
+                                </button>
+                            </div>
                             <div
                                 v-for="message in messages.slice().reverse()" :key="message.id"
                                 :class="['mb-3', message.is_owner ? 'text-end' : '2']"

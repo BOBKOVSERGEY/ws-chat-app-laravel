@@ -33,7 +33,7 @@ class ChatController extends Controller
         $chats = auth()->user()
                         ->chats()
                         ->has('messages') // find chats who have message
-                        ->with(['lastMessage'])
+                        ->with(['lastMessage', 'chatWith'])
                         ->withCount('unreadableMessageStatus')
                         ->get();
 
@@ -83,7 +83,7 @@ class ChatController extends Controller
 
     }
 
-    public function show(Chat $chat): Response
+    public function show(Chat $chat)
     {
         $page = request('page') ?? 1;
         $users = $chat->users()->get();
@@ -102,15 +102,23 @@ class ChatController extends Controller
             'is_read' => true
         ]);
 
+        $isLastPage = (int)$page === (int)$messages->lastPage();
+
         $messages = MessageResource::collection($messages)->resolve();
 
-
+        if($page > 1) {
+            return response()->json([
+                'messages' => $messages,
+                'isLastPage' => $isLastPage,
+            ]);
+        }
         $chat = ChatResource::make($chat)->resolve();
 
         return Inertia::render('Chat/Show', compact(
             'chat',
             'users',
-            'messages'
+            'messages',
+            'isLastPage',
         ));
     }
 }

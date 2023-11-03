@@ -12,7 +12,7 @@ class ChatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => $this->title ?? $this->chatWith->name,
             'users' => $this->users,
             'last_message' => $this->lastMessage ? MessageResource::make($this->lastMessage)
                 ->resolve() : null,
